@@ -1,26 +1,36 @@
+
 #pragma once
+
 #include "SurfacePoint.h"
 #include "Triangulation.h"
-#include<vector>
+#include <vector>
+#include <algorithm> // For std::min and std::max
 using namespace Geometry;
+
 class BoundingBox {
+
+private:
+   
+    // Bounding box limits
+    double  xMin;
+    double  yMin;
+    double  zMin;
+    double  xMax;
+    double  yMax;
+    double  zMax;
+
+    // Helper function to update the bounding box bounds
+    void updateBounds(double x, double y, double z);
+
 public:
-    double xMin;
-    double xMax;
-    double yMin;
-    double yMax;
-    double zMin;
-    double zMax;
-    
-
-
+ 
     BoundingBox();
+
     ~BoundingBox();
 
-    void findMinMax(Triangulation& triangulation);
-
-
-    std::vector<SurfacePoint> generateTriangles();
-
+    // Calculates the minimum and maximum bounds for the given triangulation
+    void findMinMax(const Triangulation& triangulation);
+    // Generates the vertices of the bounding box
+    std::vector<SurfacePoint> generateVertices() const;
 
 };

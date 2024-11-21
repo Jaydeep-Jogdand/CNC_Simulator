@@ -1,64 +1,62 @@
+
 #include "BoundingBox.h"
+#include <limits> // For std::numeric_limits
 
 BoundingBox::BoundingBox()
-    :xMin(DBL_MAX), yMin(DBL_MAX), zMin(DBL_MAX), xMax(DBL_MIN), yMax(DBL_MIN), zMax(DBL_MIN)
+    : xMin(std::numeric_limits<double>::max()),
+    yMin(std::numeric_limits<double>::max()),
+    zMin(std::numeric_limits<double>::max()),
+    xMax(std::numeric_limits<double>::lowest()),
+    yMax(std::numeric_limits<double>::lowest()),
+    zMax(std::numeric_limits<double>::lowest())
 {
 }
 
 BoundingBox::~BoundingBox()
 {
 }
-
-void BoundingBox::findMinMax(Triangulation& triangulation)
+// Helper function to update the bounding box bounds
+void BoundingBox::updateBounds(double x, double y, double z) 
 {
-    for (Triangle triangle : triangulation.Triangles)
-    {
-        xMin = std::min(xMin, triangulation.uniqueNumbers[triangle.P1().X()]);
-        yMin = std::min(yMin, triangulation.uniqueNumbers[triangle.P1().Y()]);
-        zMin = std::min(zMin, triangulation.uniqueNumbers[triangle.P1().Z()]);
+    xMin = std::min(xMin, x);
+    yMin = std::min(yMin, y);
+    zMin = std::min(zMin, z);
 
-        xMax = std::max(xMax, triangulation.uniqueNumbers[triangle.P1().X()]);
-        yMax = std::max(yMax, triangulation.uniqueNumbers[triangle.P1().Y()]);
-        zMax = std::max(zMax, triangulation.uniqueNumbers[triangle.P1().Z()]);
+    xMax = std::max(xMax, x);
+    yMax = std::max(yMax, y);
+    zMax = std::max(zMax, z);
+}
 
-        xMin = std::min(xMin, triangulation.uniqueNumbers[triangle.P2().X()]);
-        yMin = std::min(yMin, triangulation.uniqueNumbers[triangle.P2().Y()]);
-        zMin = std::min(zMin, triangulation.uniqueNumbers[triangle.P2().Z()]);
+// Calculates the minimum and maximum bounds for the given triangulation
+void BoundingBox::findMinMax(const Triangulation& triangulation) {
+    for (const Triangle& triangle : triangulation.Triangles) {
+        updateBounds(triangulation.uniqueNumbers[triangle.P1().X()],
+            triangulation.uniqueNumbers[triangle.P1().Y()],
+            triangulation.uniqueNumbers[triangle.P1().Z()]);
 
-        xMax = std::max(xMax, triangulation.uniqueNumbers[triangle.P2().X()]);
-        yMax = std::max(yMax, triangulation.uniqueNumbers[triangle.P2().Y()]);
-        zMax = std::max(zMax, triangulation.uniqueNumbers[triangle.P2().Z()]);
+        updateBounds(triangulation.uniqueNumbers[triangle.P2().X()],
+            triangulation.uniqueNumbers[triangle.P2().Y()],
+            triangulation.uniqueNumbers[triangle.P2().Z()]);
 
-        xMin = std::min(xMin, triangulation.uniqueNumbers[triangle.P3().X()]);
-        yMin = std::min(yMin, triangulation.uniqueNumbers[triangle.P3().Y()]);
-        zMin = std::min(zMin, triangulation.uniqueNumbers[triangle.P3().Z()]);
-
-        xMax = std::max(xMax, triangulation.uniqueNumbers[triangle.P3().X()]);
-        yMax = std::max(yMax, triangulation.uniqueNumbers[triangle.P3().Y()]);
-        zMax = std::max(zMax, triangulation.uniqueNumbers[triangle.P3().Z()]);
+        updateBounds(triangulation.uniqueNumbers[triangle.P3().X()],
+            triangulation.uniqueNumbers[triangle.P3().Y()],
+            triangulation.uniqueNumbers[triangle.P3().Z()]);
     }
 }
 
-
-std::vector<SurfacePoint> BoundingBox::generateTriangles()
-{
+// Generates the vertices of the bounding box
+std::vector<SurfacePoint> BoundingBox::generateVertices() const {
     std::vector<SurfacePoint> boundingBox;
-    SurfacePoint v0(xMin, yMin, zMin);
-    boundingBox.push_back(v0);
-    SurfacePoint v1(xMin, yMin, zMax);
-    boundingBox.push_back(v1);
-    SurfacePoint v2(xMin, yMax, zMin);
-    boundingBox.push_back(v2);
-    SurfacePoint v3(xMin, yMax, zMax);
-    boundingBox.push_back(v3);
-    SurfacePoint v4(xMax, yMin, zMin);
-    boundingBox.push_back(v4);
-    SurfacePoint v5(xMax, yMin, zMax);
-    boundingBox.push_back(v5);
-    SurfacePoint v6(xMax, yMax, zMin);
-    boundingBox.push_back(v6);
-    SurfacePoint v7(xMax, yMax, zMax);
-    boundingBox.push_back(v7);
+    boundingBox.reserve(8); // Reserve space for 8 vertices
+
+    boundingBox.emplace_back(xMin, yMin, zMin);
+    boundingBox.emplace_back(xMin, yMin, zMax);
+    boundingBox.emplace_back(xMin, yMax, zMin);
+    boundingBox.emplace_back(xMin, yMax, zMax);
+    boundingBox.emplace_back(xMax, yMin, zMin);
+    boundingBox.emplace_back(xMax, yMin, zMax);
+    boundingBox.emplace_back(xMax, yMax, zMin);
+    boundingBox.emplace_back(xMax, yMax, zMax);
 
     return boundingBox;
 }
